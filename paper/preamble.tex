@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGE IMPORTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[fontset=adobe]{ctex}
+\usepackage[tmargin=2cm,rmargin=1in,lmargin=1in,margin=0.85in,bmargin=2cm,footskip=.2in]{geometry}
+\usepackage{fontspec} % 支持自定义字体
+\usepackage{graphicx} % 引入宏包
+\usepackage{float}    % 支持 [H] 参数
+
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{green},
+    showstringspaces=false,
+    breaklines=true,   % 启用自动换行
+    breakatwhitespace=false,  % 是否仅在空白字符处换行
+}
+\usepackage{tocloft}
+% 引入hyperref包并设置超链接颜色
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,       % 颜色链接而不是方框
+    linkcolor=black,        % 目录链接颜色
+    citecolor=blue,        % 引用的颜色
+    filecolor=blue,        % 文件链接颜色
+    urlcolor=blue          % URL 链接颜色
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% 默认页眉和页脚设置
+\fancyhf{}
+% 设置页眉
+\fancyhead[LE]{} % 左侧偶数页（左侧页眉）
+\fancyhead[CE]{} % 中间偶数页（页码）
+\fancyhead[RE]{} % 右侧偶数页（右侧页眉）
+\fancyhead[LO]{} % 左侧奇数页（左侧页眉）
+\fancyhead[CO]{} % 中间奇数页（页码）
+\fancyhead[RO]{} % 右侧奇数页（右侧页眉）
+
+% 设置页脚
+\fancyfoot[LE]{\thepage} % 左侧偶数页（左侧页脚）
+\fancyfoot[CE]{} % 中间偶数页（页码）
+\fancyfoot[RE]{} % 右侧偶数页（右侧页脚）
+\fancyfoot[LO]{} % 左侧奇数页（左侧页脚）
+\fancyfoot[CO]{} % 中间奇数页（页码）
+\fancyfoot[RO]{\thepage} % 右侧奇数页（右侧页脚）
+
+\setlength{\headheight}{15pt}
+\setlength{\footskip}{15pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FONTSET
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \setmainfont{TimesNewRoman}[
+%     Path=./latex-fonts/TimesNewRoman/,
+%     BoldFont=TimesNewRoman-Bold
+% ] % 英文字体
+% \setsansfont{NotoSansSC-Regular}[
+%     Path=./latex-fonts/NotoSansSC/
+% ]           % 无衬线字体
+\setmonofont{Consola}[Path=./latex-fonts/Consolas/, Extension=.ttf]     % 等宽字体
+% \setCJKmainfont{NotoSerifSC-Regular}[
+%     Path=./latex-fonts/NotoSerifSC/,
+%     Extension=.otf,
+%     ItalicFont=NotoSerifSC-Light,
+%     BoldFont=NotoSerifSC-Bold
+% ]
+% \setCJKmonofont{Consola}[Path=./latex-fonts/Consolas/, Extension=.ttf]
+
+% hyphenpenalty值越大断字出现的就越少
+\hyphenpenalty=5000
+% tolerance越大，换行就会越少
+% 也就是说，LaTex会把本该断开放到下一行的单词，整个儿的留在当前行
+\tolerance=1000
+

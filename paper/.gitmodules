@@ -1,0 +1,3 @@
+[submodule "latex-fonts"]
+	path = latex-fonts
+	url = git@github.com:desonglll/latex-fonts.git

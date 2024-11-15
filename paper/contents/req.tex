@@ -1,0 +1,115 @@
+\section{数据集要求}
+
+\subsection{图片类别要求}
+
+对于正常幼儿：拍摄婴儿自然的动作。
+
+对于异常幼儿：尽量捕捉其异常动作。
+
+每类尽可能多的采集不同幼儿的不同照片。
+
+\textbf{总数要求}
+
+正常类别：500-1000 张
+
+异常类别：300-500 张（异常动作相对较难采集）
+
+模糊类别：100-300 张（用作无效数据检测或异常检测模型）
+
+\textbf{单个数量要求}
+
+新生儿：100-200 张
+
+婴儿期（3-6个月）：200-300 张
+
+学步期（7-12个月）：300-500 张
+
+幼儿期（1-2岁）：300-500 张
+
+分为\textbf{正常、异样、模糊}三个文件夹采集照片。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/pic-tree-demo.jpg}
+    \caption{结构示例}
+    \label{fig:file-tree}
+\end{figure}
+
+\subsection{图片格式要求}
+
+\begin{enumerate}
+    \item 图片采用\textbf{16:9}的格式。
+    \item 分辨率推荐\textbf{1080p (1920×1080)}以上。
+\end{enumerate}
+
+% \texttt{dataset/}
+% \begin{itemize}
+%     \item \texttt{normal/}     正常婴儿动作
+%     \item \texttt{abnormal/}   异常婴儿动作
+%     \item \texttt{blurry/}     模糊图片（可能作为无效数据）
+% \end{itemize}
+
+\subsection{拍摄要求}
+
+\subsubsection{环境要求}
+
+\begin{enumerate}
+    \item 背景应尽量简单，避免复杂的背景干扰。
+    \item 推荐使用\textbf{纯色背景}或室内环境，如床上、垫子上等。
+\end{enumerate}
+
+\subsubsection{光照条件}
+
+\begin{enumerate}
+    \item 图像应在良好的光照条件下采集，避免过暗或过曝。
+    \item 建议采集自然光和室内灯光条件下的图片，确保多样性。
+\end{enumerate}
+
+\subsubsection{婴儿穿着要求}
+
+\begin{enumerate}
+    \item \textbf{避免}穿着影响婴儿身体骨架特征的\textbf{厚衣服}。
+    \item 婴儿衣服颜色应与背景颜色形成\textbf{对比}。
+\end{enumerate}
+
+\subsubsection{婴儿姿势要求}
+
+数据集应该尽量包含以下姿势：
+
+\begin{enumerate}
+    \item 睡姿（仰卧、俯卧、侧卧）
+    \item 爬行（手膝着地移动）
+    \item 坐姿（双手支撑、稳定坐姿）
+    \item 站姿（扶站、不扶站）
+    \item 躺卧翻滚（侧翻或转身）
+\end{enumerate}
+
+\subsubsection{拍摄视角要求}
+
+\begin{enumerate}
+    \item 多视角采集，覆盖从\textbf{上方、侧面、正面}等不同方向拍摄的图片。
+    \item 尽量保持婴儿\textbf{全身在画面中}，确保关键点（如肘关节、膝关节等）完整。
+\end{enumerate}
+
+\subsection{图片示例}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/example-baby.jpg}
+    \caption{正面示例}
+    \label{fig:front}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/side.jpg}
+    \caption{侧面示例}
+    \label{fig:side}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/lay.jpg} 
+    \caption{顶面示例}
+    \label{fig:lay}
+\end{figure}

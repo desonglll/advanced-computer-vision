@@ -1,0 +1,346 @@
+% \section{数据集要求}
+
+% \subsection{图片类别要求}
+
+% 对于正常幼儿：拍摄婴儿自然的动作
+
+% 对于异常幼儿：尽量捕捉其异常动作
+
+% 每类尽可能多的采集不同幼儿的不同照片
+
+% \textbf{总数要求}
+
+% 正常类别：500-1000 张
+
+% 异常类别：300-500 张（异常动作相对较难采集）
+
+% 模糊类别：100-300 张（用作无效数据检测或异常检测模型）
+
+% \textbf{单个数量要求}
+
+% 新生儿：100-200 张
+
+% 婴儿期（3-6个月）：200-300 张
+
+% 学步期（7-12个月）：300-500 张
+
+% 幼儿期（1-2岁）：300-500 张
+
+% 分为\textbf{正常、异样、模糊}三个文件夹采集照片
+% \begin{figure}[H] % 控制图片的位置
+%     \centering % 图片居中
+%     \includegraphics[width=0.8\textwidth]{images/pic-tree-demo.jpg} % 设置宽度，插入图片
+%     \caption{结构示例} % 添加图片标题
+%     \label{fig:file-tree} % 给图片一个标签，方便引用
+% \end{figure}
+% \subsection{图片格式要求}
+
+% \begin{enumerate}
+%     \item 图片采用\textbf{16:9}的格式
+%     \item 分辨率推荐\textbf{1080p (1920×1080)}以上
+% \end{enumerate}
+% % dataset/
+% % ├── normal/    # 正常婴儿动作
+% % ├── abnormal/  # 异常婴儿动作
+% % └── blurry/    # 模糊图片（可能作为无效数据）
+
+
+
+% \subsection{拍摄要求}
+
+% \subsubsection{环境要求}
+
+% \begin{enumerate}
+%     \item 背景应尽量简单，避免复杂的背景干扰
+%     \item 推荐使用\textbf{纯色背景}或室内环境，如床上、垫子上等
+% \end{enumerate}
+
+% \subsubsection{光照条件}
+
+% \begin{enumerate}
+%     \item 图像应在良好的光照条件下采集，避免过暗或过曝
+%     \item 建议采集自然光和室内灯光条件下的图片，确保多样性
+% \end{enumerate}
+
+% \subsubsection{婴儿穿着要求}
+
+% \begin{enumerate}
+%     \item \textbf{避免}穿着影响婴儿身体骨架特征的\textbf{厚衣服}
+%     \item 婴儿衣服颜色应与背景颜色形成\textbf{对比}
+% \end{enumerate}
+
+% \subsubsection{婴儿姿势要求}
+
+% 数据集应该尽量包含以下姿势
+
+% \begin{enumerate}
+%     \item 睡姿（仰卧、俯卧、侧卧）
+%     \item 爬行（手膝着地移动）
+%     \item 坐姿（双手支撑、稳定坐姿）
+%     \item 站姿（扶站、不扶站）
+%     \item 躺卧翻滚（侧翻或转身）
+% \end{enumerate}
+
+% \subsubsection{拍摄视角要求}
+
+% \begin{enumerate}
+%     \item 多视角采集，覆盖从\textbf{上方、侧面、正面}等不同方向拍摄的图片
+%     \item 尽量保持婴儿\textbf{全身在画面中}，确保关键点（如肘关节、膝关节等）完整
+% \end{enumerate}
+
+% \subsection{图片示例}
+
+% \begin{figure}[H] % 控制图片的位置
+%     \centering % 图片居中
+%     \includegraphics[width=0.8\textwidth]{images/example-baby.jpg} % 设置宽度，插入图片
+%     \caption{正面示例} % 添加图片标题
+%     \label{fig:front} % 给图片一个标签，方便引用
+% \end{figure}
+% \begin{figure}[H] % 控制图片的位置
+%     \centering % 图片居中
+%     \includegraphics[width=0.8\textwidth]{images/side.jpg} % 设置宽度，插入图片
+%     \caption{侧面示例} % 添加图片标题
+%     \label{fig:side} % 给图片一个标签，方便引用
+% \end{figure}
+% \begin{figure}[H] % 控制图片的位置
+%     \centering % 图片居中
+%     \includegraphics[width=0.8\textwidth]{images/lay.jpg} % 设置宽度，插入图片
+%     \caption{顶面示例} % 添加图片标题
+%     \label{fig:lay} % 给图片一个标签，方便引用
+% \end{figure}
+
+\newpage
+\section{数据预处理与特征提取}
+
+\subsection{图片文件处理}
+
+使用OpenCV配合MediaPipePose，生成带有骨架图的儿童图片，统一命名img\_xxx.jpg，统一分辨率以及图片大小。
+
+\subsection{骨骼数据提取（单摄像头）}
+
+使用MediaPipe进行人体33个关键点的提取，保存为json格式，内有image和features字段。
+image字段代表图片的路径，包含图片的名字。
+features字段包含33个关键点的keypoint信息。
+
+\subsection{数据格式（单摄像头）}
+
+建议提取数据放在数据标注操作之后，方便json数据的追加features属性。
+1. 单个关键点的数据格式：
+\begin{lstlisting}
+Keypoint: {
+    "keypoint_id": 0,
+    "x": 0.5661032795906067,
+    "y": 0.3272441029548645,
+    "z": -1.3933179378509521,
+    "visibility": 0.9999678134918213
+}
+\end{lstlisting}
+2. 单个图片的数据格式（带有33个关键点）：
+\begin{lstlisting}
+{
+    "image": "train_img.png",
+    "features": [Keypoint]
+}
+\end{lstlisting}
+
+\section{数据标注}
+
+\subsection{工具采用}
+
+使用doccano工具进行Classification类型标注。
+使用docker部署，暴露8000端口，方便多个人员进行数据标注。
+
+\subsection{标签等级}
+
+可以选用0-9十个分类或者a-z的字母分类作为label。
+每个图片可以有多个label。
+
+\subsection{数据格式}
+
+\begin{lstlisting}
+{
+    "id": 2,
+    "filename": "img_57.jpg",
+    "label": "Good",
+    "Comments": []
+}
+\end{lstlisting}
+
+\section{数据合并}
+
+\subsection{合并工具选择}
+
+使用Python的json模块进行json与jsonl数据的合并处理。
+
+\subsection{预期合并格式}
+\begin{lstlisting}
+Keypoint: {
+    "keypoint_id": 0,
+    "x": 0.5661032795906067,
+    "y": 0.3272441029548645,
+    "z": -1.3933179378509521,
+    "visibility": 0.9999678134918213
+}
+{
+    "id": 2,
+    "filename": "img_57.jpg",
+    "features": [Keypoint]
+    "label": "Good",
+    "Comments": []
+}
+\end{lstlisting}
+
+\subsection{代码片段}
+
+\section{模型训练}
+
+\subsection{工具选择}
+
+选用Tensorflow进行训练。
+
+\subsection{传入数据}
+
+\begin{lstlisting}
+def load_data(json_path):
+with open(json_path, 'r') as f:
+    data = json.load(f)
+
+inputs = []
+labels = []
+for sample in data:
+    features = sample["features"]
+    # Flatten each (x, y, z, visibility) into a single array
+    flattened_features = []
+    for keypoint in features:
+        flattened_features.extend([keypoint["x"], keypoint["y"], keypoint["z"], keypoint["visibility"]])
+
+    inputs.append(flattened_features)
+
+    # Multi-label processing: Convert label list to a binary vector
+    label_list = sample["label"]
+    labels.append(label_list)
+
+return np.array(inputs), labels
+\end{lstlisting}
+
+\subsection{数据规范}
+
+\begin{lstlisting}
+# Load data
+X, y = load_data('../data.json')
+print(f"Initial X shape: {X.shape}")
+ALL_LABELS = []
+for label in y:
+    if label not in ALL_LABELS:
+        ALL_LABELS.append(label)
+print(f"ALL LABELS: {ALL_LABELS}")
+# N categories
+N = len(ALL_LABELS)
+print(f"N: {N}")
+KEY_POINTS = 33
+FEATURES = 4
+# Reshape data to fit Conv1D input: (samples, steps, features)
+X = X.reshape((X.shape[0], KEY_POINTS, 4))  # 33 keypoints with 4 features (x, y, z, visibility)
+# Checking the shape of the reshaped data
+print(X.shape)
+\end{lstlisting}
+
+\subsection{OneHotEncoding编码}
+
+\begin{lstlisting}
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.utils import to_categorical
+# Initialize a LabelEncoder to convert strings to integers
+label_encoder = LabelEncoder()
+# Fit and transform the labels to integers
+y_int = label_encoder.fit_transform(y)
+# Now apply to_categorical for one-hot encoding
+y_onehot = to_categorical(y_int, num_classes=len(label_encoder.classes_))
+print(f"One-hot encoded labels shape: {y_onehot.shape}")
+print(y_onehot)
+\end{lstlisting}
+
+\subsection{模型定义}
+
+\begin{lstlisting}
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
+# Define the model
+model = Sequential()
+# Add Conv1D layer
+model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(KEY_POINTS, FEATURES)))
+# Add MaxPooling1D layer
+model.add(MaxPooling1D(pool_size=2))
+# Add another Conv1D layer
+model.add(Conv1D(filters=128, kernel_size=3, activation='relu'))
+# Add another MaxPooling1D layer
+model.add(MaxPooling1D(pool_size=2))
+# Flatten the output from Conv1D layers
+model.add(Flatten())
+# Add Dense layer with dropout for regularization
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+# Output layer with softmax activation (for classification)
+model.add(Dense(N, activation='softmax'))  # N is the number of classes
+\end{lstlisting}
+
+\subsection{模型编译}
+
+\begin{lstlisting}
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+# Summary of the model
+model.summary()
+\end{lstlisting}
+
+\subsection{训练模型}
+
+\begin{lstlisting}
+# Train the Model
+history = model.fit(X, y_onehot, epochs=10, batch_size=32, validation_split=0.2)
+# Evaluate the Model
+loss, accuracy = model.evaluate(X, y_onehot)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+\end{lstlisting}
+
+\section{预测图片}
+
+\subsection{提取单张图片的关键点}
+
+\begin{lstlisting}
+import cv2
+from mediapipe_impl.pose_estimation import PoseEstimationModule as pm
+detector = pm.PoseDetector()
+def extract_keypoints(image_path):
+    cap = cv2.VideoCapture(image_path)
+    success, img = cap.read()
+    img = detector.find_pose(img=img)
+    lm_list = detector.find_position(img, draw=False)
+    return lm_list
+\end{lstlisting}
+
+\subsection{预测图片}
+
+\begin{lstlisting}
+def predict_image(image_path):
+    data = []
+    keypoints = extract_keypoints(image_path)
+    for keypoint in keypoints:
+        data.extend([keypoint["x"], keypoint["y"], keypoint["z"], keypoint["visibility"]])
+    X = np.array(data).reshape((1, 33, 4))
+    print(X.shape)
+    # 模型预测
+    predictions = model.predict(X)
+
+    # 获取预测类别的索引
+    predicted_class = np.argmax(predictions, axis=1)[0]
+
+    print(f"Predicted Class: {predicted_class}")
+    print(ALL_LABELS[predicted_class])
+
+
+# 示例：预测一张新图像
+image_path = '../datasets/img.jpg'
+result = predict_image(image_path)
+\end{lstlisting}
