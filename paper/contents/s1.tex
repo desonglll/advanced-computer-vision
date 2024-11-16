@@ -344,3 +344,48 @@ def predict_image(image_path):
 image_path = '../datasets/img.jpg'
 result = predict_image(image_path)
 \end{lstlisting}
+
+\section{定期保存角度信息}
+
+程序运行期间定期保存给定三个 keypoint\_id 的角度信息
+
+\begin{lstlisting}
+def process_and_save_angle(self, img, p1, p2, p3, save_interval, filepath="angles.csv", draw=True):
+    """
+    处理图像，计算角度，并定期保存角度和时间戳到CSV文件中。
+    :param img: 输入图像
+    :param p1: 第一个关键点ID
+    :param p2: 第二个关键点ID
+    :param p3: 第三个关键点ID
+    :param save_interval: 保存间隔时间（秒）
+    :param filepath: CSV文件路径
+    :param draw: 是否在图像上绘制关键点和角度
+    :return: 处理后的图像
+    """
+    # 初始化静态变量，用于存储上次保存时间
+    if not hasattr(self, "_last_save_time"):
+        self._last_save_time = 0
+
+    lm_list = self.find_position(img, draw=False)
+
+    if len(lm_list) > 0:
+        # 计算三个关键点的角度
+        angle = self.find_angle(img, p1, p2, p3, draw=draw)
+
+        # 获取当前时间
+        current_time = time.time()
+
+        # 检查是否需要保存角度
+        if current_time - self._last_save_time >= save_interval:
+            # 保存到CSV文件
+            with open(filepath, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(current_time)), angle])
+            print(
+                f"Angle {angle:.2f} saved at time {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(current_time))}.")
+
+            # 更新保存时间
+            self._last_save_time = current_time
+
+    return img
+\end{lstlisting}

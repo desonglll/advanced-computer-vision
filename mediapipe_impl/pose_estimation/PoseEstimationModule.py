@@ -40,8 +40,8 @@ class PoseDetector:
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 self.lm_list.append({
                     "keypoint_id": id,
-                    "x": cx,
-                    "y": cy,
+                    "x": lm.x,
+                    "y": lm.y,
                     "z": lm.z,
                     "visibility": lm.visibility,
                 })
@@ -50,10 +50,11 @@ class PoseDetector:
         return self.lm_list
 
     def find_angle(self, img, p1, p2, p3, draw=True):
-        print(self.lm_list[p1])
-        x1, y1 = self.lm_list[p1]["x"], self.lm_list[p1]["y"]
-        x2, y2 = self.lm_list[p2]["x"], self.lm_list[p2]["y"]
-        x3, y3 = self.lm_list[p3]["x"], self.lm_list[p3]["y"]
+        h, w, c = img.shape
+        # print(id, lm)
+        x1, y1 = int(self.lm_list[p1]["x"] * w), int(self.lm_list[p1]["y"] * h)
+        x2, y2 = int(self.lm_list[p2]["x"] * w), int(self.lm_list[p2]["y"] * h)
+        x3, y3 = int(self.lm_list[p3]["x"] * w), int(self.lm_list[p3]["y"] * h)
 
         # Calculate the angle
         angle = math.degrees(math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2))
@@ -84,6 +85,8 @@ class PoseDetector:
         :param filepath: CSV文件路径
         :param draw: 是否在图像上绘制关键点和角度
         :return: 处理后的图像
+
+        csv格式：time, angle
         """
         # 初始化静态变量，用于存储上次保存时间
         if not hasattr(self, "_last_save_time"):
@@ -127,7 +130,7 @@ def main():
         # # 调用方法，处理图像并定期保存角度
         img = detector.process_and_save_angle(
             img=img,
-            p1=11, p2=13, p3=15,  # 左肩、左肘、左手腕
+            p1=5, p2=12, p3=24,  # 左肩、左肘、左手腕
             save_interval=1,  # 每1秒保存一次
             filepath="angles.csv",
             draw=True
