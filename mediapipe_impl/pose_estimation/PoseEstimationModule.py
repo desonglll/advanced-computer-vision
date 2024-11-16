@@ -1,3 +1,6 @@
+import csv
+from time import localtime
+
 import cv2
 import mediapipe as mp
 import time
@@ -37,8 +40,8 @@ class PoseDetector:
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 self.lm_list.append({
                     "keypoint_id": id,
-                    "x": lm.x,
-                    "y": lm.y,
+                    "x": cx,
+                    "y": cy,
                     "z": lm.z,
                     "visibility": lm.visibility,
                 })
@@ -47,10 +50,11 @@ class PoseDetector:
         return self.lm_list
 
     def find_angle(self, img, p1, p2, p3, draw=True):
-        _, x1, y1 = self.lm_list[p1]
-        # x1, y1 = self.lm_list[p1][1:] # Also works
-        _, x2, y2 = self.lm_list[p2]
-        _, x3, y3 = self.lm_list[p3]
+        print(self.lm_list[p1])
+        x1, y1 = self.lm_list[p1]["x"], self.lm_list[p1]["y"]
+        x2, y2 = self.lm_list[p2]["x"], self.lm_list[p2]["y"]
+        x3, y3 = self.lm_list[p3]["x"], self.lm_list[p3]["y"]
+
         # Calculate the angle
         angle = math.degrees(math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2))
         # print(angle)
@@ -69,30 +73,73 @@ class PoseDetector:
             cv2.putText(img, str(int(angle)), (x2 - 50, y2 + 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2)
         return angle
 
+    def process_and_save_angle(self, img, p1, p2, p3, save_interval, filepath="angles.csv", draw=True):
+        """
+        处理图像，计算角度，并定期保存角度和时间戳到CSV文件中。
+        :param img: 输入图像
+        :param p1: 第一个关键点ID
+        :param p2: 第二个关键点ID
+        :param p3: 第三个关键点ID
+        :param save_interval: 保存间隔时间（秒）
+        :param filepath: CSV文件路径
+        :param draw: 是否在图像上绘制关键点和角度
+        :return: 处理后的图像
+        """
+        # 初始化静态变量，用于存储上次保存时间
+        if not hasattr(self, "_last_save_time"):
+            self._last_save_time = 0
+
+        lm_list = self.find_position(img, draw=False)
+
+        if len(lm_list) > 0:
+            # 计算三个关键点的角度
+            angle = self.find_angle(img, p1, p2, p3, draw=draw)
+
+            # 获取当前时间
+            current_time = time.time()
+
+            # 检查是否需要保存角度
+            if current_time - self._last_save_time >= save_interval:
+                # 保存到CSV文件
+                with open(filepath, mode='a', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(current_time)), angle])
+                print(
+                    f"Angle {angle:.2f} saved at time {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(current_time))}.")
+
+                # 更新保存时间
+                self._last_save_time = current_time
+
+        return img
+
 
 def main():
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("../../datasets/body_videos/body_2.mp4")
-    p_time = 0
+    # cap = cv2.VideoCapture("../../datasets/body_videos/body_2.mp4")
+    cap = cv2.VideoCapture(1)
     detector = PoseDetector()
+
     while True:
         success, img = cap.read()
-        img = detector.find_pose(img=img)
-        lm_list = detector.find_position(img=img, draw=False)
-        # if len(lm_list) != 0:
-        #     print(lm_list[14])
-        #     cv2.circle(img, (lm_list[14][1], lm_list[14][2]), 10, (255, 0, 0), cv2.FILLED)
-        #
-        c_time = time.time()
+        if not success:
+            break
 
-        fps = 1 / (c_time - p_time)
-        p_time = c_time
+        lm_list = detector.find_position(img)
+        # # 调用方法，处理图像并定期保存角度
+        img = detector.process_and_save_angle(
+            img=img,
+            p1=11, p2=13, p3=15,  # 左肩、左肘、左手腕
+            save_interval=1,  # 每1秒保存一次
+            filepath="angles.csv",
+            draw=True
+        )
 
-        cv2.putText(img, 'FPS: {:.2f}'.format(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3)
+        # 显示图像
         cv2.imshow('img', img)
-        cv2.waitKey(1)
+        if cv2.waitKey(1) & 0xFF == ord('q'):  # 按 'q' 键退出
+            break
 
-    pass
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
