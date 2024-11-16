@@ -7,5 +7,6 @@ datasets/img
 
 *.jpg
 *.png
-
+*.json
+*.jsonl
 data.json
