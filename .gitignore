@@ -9,4 +9,7 @@ datasets/img
 *.png
 *.json
 *.jsonl
+*.csv
+
+*.keras
 data.json
