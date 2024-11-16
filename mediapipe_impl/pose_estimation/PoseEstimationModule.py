@@ -126,8 +126,7 @@ def main():
         if not success:
             break
 
-        lm_list = detector.find_position(img)
-        # # 调用方法，处理图像并定期保存角度
+        # 调用方法，处理图像并定期保存角度
         img = detector.process_and_save_angle(
             img=img,
             p1=5, p2=12, p3=24,  # 左肩、左肘、左手腕
