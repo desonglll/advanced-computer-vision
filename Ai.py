@@ -54,29 +54,3 @@ while True:
 
     cv2.imshow('img', img)
     cv2.waitKey(1)
-# while True:
-#     success, img = cap.read()
-#     img = detector.find_pose(img=img)
-#     lm_list = detector.find_position(img, draw=False)
-#     data = []
-#     for keypoint in lm_list:
-#         data.extend([keypoint["x"], keypoint["y"], keypoint["z"], keypoint["visibility"]])
-#     X = np.array(data).reshape((1, 33, 4))
-#     print(X.shape)
-#     # 模型预测
-#     predictions = model.predict(X)
-#
-#     # 获取预测类别的索引
-#     predicted_class = np.argmax(predictions, axis=1)[0]
-#
-#     print(f"Predicted Class: {predicted_class}")
-#     print(ALL_LABELS[predicted_class])
-#
-#     c_time = time.time()
-#     fps = 1 / (c_time - p_time)
-#     p_time = c_time
-#
-#     cv2.putText(img, 'FPS: {:.2f}'.format(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3)
-#
-#     cv2.imshow('img', img)
-#     cv2.waitKey(1)

@@ -125,7 +125,9 @@ features字段包含33个关键点的keypoint信息。
 \subsection{数据格式（单摄像头）}
 
 建议提取数据放在数据标注操作之后，方便json数据的追加features属性。
+
 1. 单个关键点的数据格式：
+
 \begin{lstlisting}
 Keypoint: {
     "keypoint_id": 0,
@@ -135,7 +137,9 @@ Keypoint: {
     "visibility": 0.9999678134918213
 }
 \end{lstlisting}
+
 2. 单个图片的数据格式（带有33个关键点）：
+
 \begin{lstlisting}
 {
     "image": "train_img.png",
@@ -389,3 +393,7 @@ def process_and_save_angle(self, img, p1, p2, p3, save_interval, filepath="angle
 
     return img
 \end{lstlisting}
+
+\section{实际运行}
+
+见AiI.py
