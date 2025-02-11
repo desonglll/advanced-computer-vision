@@ -327,8 +327,8 @@ def main():
         if not success:
             break
 
-        # img = detector.find_pose(img)
-        # cv2.imshow('img', img)
+        img = detector.find_pose(img)
+        cv2.imshow('img', img)
 
         # img, lmks = detector.find_position(img, convert_to_x_y_pixel=True, draw=True)
         # cv2.imshow('img', img)
@@ -340,11 +340,12 @@ def main():
 
         # angle = detector.find_angle_with_horizontal(img, 5, 10, draw=True)
         # cv2.imshow('img', img)
-
+        #
         # detector.find_angle_with_horizontal_mean(img, 2, 5, 9, 10, draw=True)
         # cv2.imshow('img', img)
-        detector.find_angle_with_horizontal_mean_all(img, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, draw=True)
-        cv2.imshow('img', img)
+
+        # detector.find_angle_with_horizontal_mean_all(img, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, draw=True)
+        # cv2.imshow('img', img)
         # TODO:
         # 调用方法，处理图像并定期保存角度
         # img = detector.process_and_save_angle(

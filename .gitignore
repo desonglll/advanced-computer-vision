@@ -5,6 +5,7 @@ datasets/body_videos
 datasets/face_videos
 datasets/img
 
+__pycache__
 *.jpg
 *.png
 *.json

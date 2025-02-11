@@ -1,0 +1,478 @@
+\section{前后端设计方案}
+
+\subsection{整体架构}
+
+本方案通过整合Django框架与姿势识别程序，实现前后端的协同工作，确保系统能够高效地处理用户请求并提供实时反馈。系统架构由以下几个核心模块组成：
+
+\begin{enumerate}
+    \item \textbf{前端模块：}
+    前端部分采用HTML、CSS和JavaScript开发，利用前端框架如React或Vue.js提供用户友好的交互界面。用户通过网页界面上传图片，查看姿势识别的结果，且能够实时查看识别过程中的反馈信息。此外，前端还负责与后端进行数据交互，发送用户请求和展示姿势识别结果。
+
+    \item \textbf{后端模块：}
+    后端部分基于Django框架，负责处理来自前端的请求，执行业务逻辑，调用姿势识别程序，并返回识别结果。后端模块的主要职责包括：接收用户上传的图片文件、调用YOLO姿势识别模型进行处理、将识别结果返回给前端展示。后端还负责实现用户认证、权限管理及其他核心功能。
+
+    \item \textbf{模型处理模块：}
+    模型处理模块包括YOLO姿势识别模型及其相关算法。此模块负责接收上传的图片，使用预训练的YOLO模型进行姿势检测与识别，提取关键点坐标、姿势角度等信息，并将结果传递给后端模块进行进一步处理。该模块可能与OpenCV等图像处理库协同工作，确保高效的图像预处理与实时识别。
+
+    \item \textbf{数据库模块：}
+    数据库模块采用PostgreSQL作为数据存储解决方案。该模块负责存储用户数据、上传的图片信息以及姿势识别结果。数据库设计包含用户表、图片表、识别结果表等，确保数据的高效存储与快速查询。此外，数据库模块还支持用户信息的增删改查操作，用于管理用户资料与相关数据。
+\end{enumerate}
+
+系统的整体流程为：用户通过前端模块上传图片，后端接收图片并调用模型处理模块进行姿势识别，最后将识别结果与相关数据存入数据库，并返回给前端展示。这种架构实现了高效的数据流转和协同工作，支持系统的可扩展性与可维护性。
+
+
+\subsection{前端设计}
+
+\subsubsection{主要架构}
+
+系统的前端界面分为几个主要区域：顶部菜单栏提供基础的导航功能，如上传图片、历史记录查询和帮助选项；中央核心区域展示OpenCV实时画面，主要显示姿势识别过程中的骨架关键点或其他视觉反馈；右侧功能区域包含摄像头控制和参数设置，允许用户启动或关闭摄像头、调整摄像头设置以及配置模型参数；底部结果区域则提供实时姿势状态、系统运行日志和间隔检测分析结果等信息。
+
+技术架构方面，前端使用HTML、CSS、JavaScript与前端框架（如React或Vue.js）结合实现动态界面更新。后端采用Django框架，处理业务逻辑和数据交互。姿势识别功能通过集成YOLO模型或其他深度学习模型，并结合OpenCV进行实现。
+
+\subsubsection{主要功能}
+
+系统的主要功能包括图片上传、实时反馈、参数配置、结果展示、历史查询和无刷新交互。用户可以通过菜单栏快速上传图片，支持多种格式。上传后，图片会传递到后端并启动模型进行分析。实时反馈方面，OpenCV实时画面动态显示检测过程，用户可以看到骨架图或其他标注信息，同时摄像头实时捕获图像流，帮助用户了解当前状态。
+
+参数配置部分，用户可以调节摄像头相关参数，如分辨率和曝光度；姿势识别参数，如模型选择和置信度设置，也可以进行调整。结果展示方面，检测完成后，前端会实时展示关键点位置信息和预测分类结果。历史查询功能允许用户通过筛选条件查询识别历史，数据通过AJAX动态加载优化查询体验。无刷新交互利用AJAX技术，使得用户无需刷新页面即可更新或获取新的检测结果。
+
+\subsubsection{系统优势}
+
+系统具有模块化设计、实时性和可扩展性等优势。各功能区域相对独立，有利于系统的维护和扩展。通过结合OpenCV和YOLO模型，系统能够实现高效的姿势检测，满足不同应用场景的需求。界面和功能可以根据需求进行调整，适应健康监测、运动指导等应用场景。
+
+\subsubsection{用户界面}
+
+前端页面提供以下主要功能，确保用户能够方便地与系统交互并获取姿势识别的结果：
+
+\begin{enumerate}
+    \item \textbf{图片上传：}
+    用户可以通过简洁的表单界面上传图片文件。该功能通过HTML表单和JavaScript处理，支持多种图片格式（如JPG、PNG）。用户选择文件后，点击上传按钮，系统会自动将图片发送到后端进行处理。为了提升用户体验，前端还会提供上传进度条，显示图片上传的状态，确保用户可以及时了解上传的进度。
+
+    \item \textbf{识别结果展示：}
+    在图片上传并进行姿势识别后，系统会展示包括关键点数据在内的识别结果。识别结果将通过动态页面更新的方式呈现，用户可以在页面上看到姿势识别后的骨架图，并且每个关键点的坐标和类别会以表格或图形的方式展示。此外，前端会根据模型预测的分类结果显示相应的分类标签（如"正常姿势"、"错误姿势"等）。这些结果将实时显示，帮助用户了解上传图片的分析信息。
+
+    \item \textbf{数据查询：}
+    系统提供查询功能，允许用户查看历史上传记录及相关识别结果。用户可以通过日期、文件名、分类标签等条件进行筛选。每条历史记录会展示上传的图片、识别结果及对应的时间戳。查询功能通过后端与数据库的交互实现，确保用户能够快速查找到所需数据。查询界面将提供分页显示和搜索功能，优化查询效率，特别是在大量数据的情况下，用户仍能流畅操作。
+\end{enumerate}
+
+以上功能通过精心设计的用户界面进行呈现，结合前端技术（如HTML5、CSS3、JavaScript、React等）实现，保证了系统的交互性、易用性和高效性。用户能够快速上传图片、查看姿势识别结果，并查询历史记录，提升了整体体验。
+
+
+\subsubsection{交互流程}
+
+系统通过AJAX请求与Django后端进行交互，确保前端页面在进行数据交互时无需刷新，从而显著提升了用户体验。整个交互流程如下：
+
+\begin{enumerate}
+    \item \textbf{前端界面：}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{imgs/frontend-1.png}
+        \caption{前端界面概览}
+        \label{fig:file-tree}
+    \end{figure}
+    % 用户选择并上传图片后，前端通过AJAX向Django后端发送POST请求。请求体中包含图片文件和相关的元数据（如图片名、文件类型等）。AJAX请求的发送不会导致页面刷新，用户可以继续浏览页面，而后台则开始处理图片。前端通过AJAX的回调函数监控上传过程，实时更新进度条，直观地向用户显示上传进度。上传完成后，后端将图片路径存入数据库，并将图片传送给姿势识别模型进行分析。
+
+    \item \textbf{姿势识别：}
+    上传完成后，Django后端使用已加载的姿势识别模型（如YOLO或其他深度学习模型）进行处理。识别结果，包括33个关键点的位置及预测分类，会通过AJAX请求返回给前端。后端将处理结果封装为JSON格式，并通过AJAX响应发送给前端，数据包括图片文件路径、识别到的关键点坐标、分类结果等信息。前端接收到数据后，通过JavaScript处理并动态更新页面，显示识别结果，且无需刷新页面。
+
+    \item \textbf{结果展示与查询：}
+    用户上传的图片及其识别结果存储在数据库中。用户可以通过前端的查询界面发起AJAX请求，根据条件（如上传时间、分类标签、图片名等）检索历史记录。每次查询时，AJAX请求会向Django后端发送相应的查询参数，后端会从数据库中获取符合条件的记录，并通过JSON格式将结果返回。前端接收到查询结果后，动态更新页面内容，展示符合条件的图片及识别结果，用户无需手动刷新页面。
+
+    \item \textbf{无刷新更新：}
+    AJAX请求的核心在于其无刷新特性。前端页面无需全页刷新即可获取和展示数据。这通过在页面中局部更新内容来实现，例如更新识别结果的图像和表格数据。这种交互方式提升了用户体验，减少了页面加载时间和服务器压力，使得页面更加流畅和高效。
+
+\end{enumerate}
+
+通过AJAX与Django后端的交互，系统实现了实时响应和无刷新更新，大大增强了交互的流畅度和用户的使用体验。该流程不仅提高了系统的响应速度，还能处理复杂的多步操作，用户无需等待整个页面重新加载即可获取实时结果，进一步优化了前后端协作效率。
+
+
+\subsection{后端设计}
+
+\subsubsection{Django应用模块}
+
+后端由以下主要模块构成：
+
+\begin{enumerate}
+    \item \textbf{用户管理模块：}
+    该模块负责处理用户的注册、登录及权限管理。用户通过前端页面提交注册信息后，后端通过Django的认证系统进行处理，确保用户信息的安全性和完整性。用户登录时，后端验证用户的身份，使用会话（Session）管理用户的登录状态。该模块还包括权限控制，确保不同角色的用户能够访问特定的资源。例如，管理员可访问所有图片及其识别结果，而普通用户只能访问自己的数据。
+
+    \item \textbf{图片上传模块：}
+    用户通过前端上传图片时，该模块负责接收图片文件并将其保存到服务器的指定路径。图片通过AJAX请求提交给后端，后端使用Django的文件处理功能（如`FileField`）接收上传的文件，并将其存储到服务器的本地或云存储中。同时，后端会对上传的图片进行验证，确保文件类型和大小符合要求。成功上传后，图片路径和相关信息会保存到数据库中，以便后续检索和展示。
+
+    \item \textbf{姿势识别模块：}
+    该模块负责调用姿势识别程序（如YOLO或其他深度学习模型）处理用户上传的图片并返回识别结果。处理过程中，后端会将上传的图片传递给姿势识别模型进行分析，提取出图片中的人体关键点坐标以及预测的姿势分类。识别结果以JSON格式返回，包括33个关键点的坐标（x, y, z）和可见性（visibility）。返回的识别结果会被传递至前端，供用户查看。
+
+    \item \textbf{数据管理模块：}
+    该模块负责将识别结果保存到数据库中，并提供查询接口。所有上传的图片及其识别结果都会被存储在PostgreSQL数据库中，便于后续的数据分析和检索。数据库中的记录包括图片路径、识别到的关键点数据以及分类结果等信息。数据管理模块还提供查询功能，允许用户根据时间、标签、分类结果等条件进行检索，查询到的历史数据将通过AJAX响应返回前端，展示在用户界面上。
+
+\end{enumerate}
+
+这些模块协同工作，确保了系统能够高效地处理用户请求，上传图片，进行姿势识别，并将结果存储和展示。每个模块都可以独立扩展和优化，以适应不同的业务需求。
+
+
+\subsubsection{接口设计}
+
+系统使用Django REST framework (DRF) 提供RESTful API，确保前后端通信高效、灵活。以下是主要接口的设计及其详细说明：
+
+\begin{enumerate}
+    \item \textbf{POST /api/upload/}
+    接收用户上传图片的请求，将图片保存到服务器，并返回图片存储路径及相关信息。
+    \begin{itemize}
+        \item \textbf{请求格式：}
+        \begin{lstlisting}
+        {
+            "file": <binary_image_file>,
+            "user_id": <int>
+        }
+        \end{lstlisting}
+        \item \textbf{响应格式：}
+        \begin{lstlisting}
+        {
+            "status": "success",
+            "file_path": "/media/uploads/img_123.jpg",
+            "message": "File uploaded successfully."
+        }
+        \end{lstlisting}
+        \item \textbf{功能说明：}
+        上传的图片文件会被存储在服务器的指定目录（如`/media/uploads/`）。系统会验证文件类型和大小，确保上传的文件为有效的图片格式（如JPEG、PNG）且大小在可接受范围内。如果验证失败，接口将返回错误信息。
+
+    \end{itemize}
+
+    \item \textbf{GET /api/results/}
+    提供用户历史识别记录的查询接口，返回指定用户的上传图片及对应的姿势识别结果。
+    \begin{itemize}
+        \item \textbf{请求格式：}
+        \begin{lstlisting}
+        GET /api/results/?user_id=<int>&page=<int>&limit=<int>
+        \end{lstlisting}
+        \item \textbf{响应格式：}
+        \begin{lstlisting}
+        {
+            "status": "success",
+            "results": [
+                {
+                    "filename": "img_123.jpg",
+                    "label": "Good",
+                    "features": [...],
+                    "timestamp": "2024-11-23T10:00:00Z"
+                },
+                ...
+            ],
+            "pagination": {
+                "current_page": 1,
+                "total_pages": 5
+            }
+        }
+        \end{lstlisting}
+        \item \textbf{功能说明：}
+        系统支持分页返回历史记录，通过`page`和`limit`参数控制每页显示的条目数。接口可以根据用户身份过滤数据，确保每位用户仅能访问自己的历史记录。
+
+    \end{itemize}
+
+    \item \textbf{POST /api/recognize/}
+    调用姿势识别程序，对上传的图片进行处理，并返回关键点数据及分类结果。
+    \begin{itemize}
+        \item \textbf{请求格式：}
+        \begin{lstlisting}
+        {
+            "file_path": "/media/uploads/img_123.jpg",
+            "user_id": <int>
+        }
+        \end{lstlisting}
+        \item \textbf{响应格式：}
+        \begin{lstlisting}
+        {
+            "status": "success",
+            "filename": "img_123.jpg",
+            "features": [
+                {
+                    "keypoint_id": 0,
+                    "x": 0.566,
+                    "y": 0.327,
+                    "z": -1.393,
+                    "visibility": 0.999
+                },
+                ...
+            ],
+            "label": "Good",
+            "message": "Recognition completed successfully."
+        }
+        \end{lstlisting}
+        \item \textbf{功能说明：}
+        该接口调用姿势识别模块加载指定图片，提取33个关键点的位置信息（x, y, z）和可见性（visibility），并对图片姿势进行分类，返回分类结果（如“Good”、“Normal”、“Wrong”）。响应中包含完整的关键点信息和分类结果。
+
+    \end{itemize}
+
+\end{enumerate}
+
+通过以上接口设计，系统实现了从图片上传到姿势识别、再到历史记录查询的完整闭环流程。API设计遵循RESTful原则，支持前端灵活调用，且易于扩展和维护。
+
+
+\subsection{姿势识别程序整合}
+
+\subsubsection{调用流程}
+
+后端在接收到用户上传的图片后，将图片路径传递给姿势识别程序，程序完成姿势识别处理后返回分类结果和关键点数据。整个流程详细描述如下：
+
+\begin{enumerate}
+    \item \textbf{图片上传处理：}
+    用户通过前端页面上传图片，后端接收图片后进行以下操作：
+    \begin{itemize}
+        \item 验证上传的文件格式（支持JPEG、PNG等）。
+        \item 将图片保存至服务器指定目录（如`/media/uploads/`）。
+        \item 返回图片路径供后续流程调用。
+    \end{itemize}
+
+    \item \textbf{调用姿势识别程序：}
+    后端通过Python的\texttt{subprocess}模块调用姿势识别程序，执行以下步骤：
+    \begin{itemize}
+        \item 使用预定义的命令行接口，向姿势识别程序传递图片路径作为输入参数。例如：
+        \begin{lstlisting}[language=Python]
+        import subprocess
+        result = subprocess.run(
+            ["python", "pose_recognition.py", "--image", "/media/uploads/img_123.jpg"],
+            capture_output=True,
+            text=True
+        )
+        \end{lstlisting}
+        \item 姿势识别程序加载预训练的模型，对输入图片进行关键点检测和分类。
+        \item 程序生成一个包含识别结果的JSON文件，格式如下：
+        \begin{lstlisting}
+        {
+            "filename": "img_123.jpg",
+            "features": [
+                {"keypoint_id": 0, "x": 0.566, "y": 0.327, "z": -1.393, "visibility": 0.999},
+                ...
+            ],
+            "label": "Good"
+        }
+        \end{lstlisting}
+        \item 姿势识别程序将处理状态（成功或失败）通过标准输出返回给后端。
+    \end{itemize}
+
+    \item \textbf{解析识别结果：}
+    后端读取姿势识别程序生成的JSON文件，解析其中的关键点信息和分类结果。例如：
+    \begin{lstlisting}[language=Python]
+    import json
+    with open('/output/results.json', 'r') as f:
+        recognition_data = json.load(f)
+    label = recognition_data['label']
+    features = recognition_data['features']
+    \end{lstlisting}
+
+    \item \textbf{数据存储与返回：}
+    解析后的数据会存入数据库，存储结构如下：
+    \begin{itemize}
+        \item 图片信息：包含文件名、上传时间和路径。
+        \item 姿势识别结果：关键点数据（x, y, z, visibility）及分类标签。
+    \end{itemize}
+    后端通过API将结果返回给前端，供用户查看。返回示例如下：
+    \begin{lstlisting}
+    {
+        "status": "success",
+        "filename": "img_123.jpg",
+        "label": "Good",
+        "features": [
+            {"keypoint_id": 0, "x": 0.566, "y": 0.327, "z": -1.393, "visibility": 0.999},
+            ...
+        ]
+    }
+    \end{lstlisting}
+
+\end{enumerate}
+
+上述调用流程实现了后端与姿势识别程序的无缝对接，确保数据流从上传到处理、再到存储与返回的完整性和高效性。
+
+
+\subsubsection{数据格式}
+
+姿势识别程序在完成图片处理后，将结果输出为JSON格式文件，以便后端解析和存储。以下为JSON文件的详细结构说明及示例：
+
+\begin{itemize}
+    \item \textbf{顶层字段描述：}
+    \begin{itemize}
+        \item \texttt{"image"}: 字符串类型，表示被处理图片的文件名。
+        \item \texttt{"keypoints"}: 数组类型，包含关键点的检测结果，每个关键点由一组坐标和可见性组成。
+        \item \texttt{"classification"}: 字符串类型，表示图片的分类结果。
+    \end{itemize}
+
+    \item \textbf{关键点字段描述：}
+    每个关键点包含以下字段：
+    \begin{itemize}
+        \item \texttt{"id"}: 整数类型，关键点的唯一标识符。
+        \item \texttt{"x"}: 浮点数类型，表示关键点在图片中的水平坐标（归一化至0-1范围）。
+        \item \texttt{"y"}: 浮点数类型，表示关键点在图片中的垂直坐标（归一化至0-1范围）。
+        \item \texttt{"z"}: 浮点数类型，表示关键点的深度值（相对摄像头的距离）。
+        \item \texttt{"visibility"}: 浮点数类型，表示关键点的可见性置信度（范围为0-1）。
+    \end{itemize}
+\end{itemize}
+
+\textbf{JSON文件示例}：
+
+\begin{lstlisting}
+{
+    "image": "example.jpg",
+    "keypoints": [
+        {
+            "id": 0,
+            "x": 0.512,
+            "y": 0.603,
+            "z": -0.325,
+            "visibility": 0.998
+        },
+        {
+            "id": 1,
+            "x": 0.435,
+            "y": 0.725,
+            "z": -0.210,
+            "visibility": 0.965
+        },
+        ...
+    ],
+    "classification": "Good"
+}
+\end{lstlisting}
+
+\textbf{字段说明}：
+\begin{itemize}
+    \item \texttt{"image"}: 文件名字段指向当前处理的图片，便于后端与数据库关联。
+    \item \texttt{"keypoints"}: 数组中的每个对象对应一个人体关键点（如关节或部位），包含其三维坐标及置信度。
+    \item \texttt{"classification"}: 结果分类字段，用于描述图片中的姿势类型，例如“Good”、“Normal”或“Wrong”。
+\end{itemize}
+
+该格式结构清晰，便于程序解析，同时为姿势识别结果的展示和存储提供了详细信息。
+
+
+\subsection{数据库设计}
+
+\subsubsection{数据表结构}
+
+系统数据库设计包含以下主要数据表，每个表根据功能划分具体字段及约束条件，确保数据的完整性和可扩展性。
+
+\begin{enumerate}
+    \item \textbf{用户表（\texttt{users}）} \\
+    用于存储用户信息，支持用户登录和权限管理。
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{|l|l|l|p{8cm}|}
+            \hline
+            \textbf{字段名} & \textbf{类型} & \textbf{约束} & \textbf{描述} \\
+            \hline
+            \texttt{id} & INTEGER & 主键，自增 & 用户唯一标识符 \\
+            \texttt{username} & VARCHAR(50) & 唯一，非空 & 用户名，用于登录 \\
+            \texttt{password} & VARCHAR(256) & 非空 & 加密存储的用户密码 \\
+            \texttt{role} & VARCHAR(20) & 默认值为\texttt{'user'} & 用户权限级别，例如\texttt{'admin'}或\texttt{'user'} \\
+            \hline
+        \end{tabular}
+        \caption{用户表结构}
+        \label{tab:users}
+    \end{table}
+
+    \item \textbf{图片表（\texttt{images}）} \\
+    用于存储上传的图片及其相关信息。
+    \begin{table}[h!]
+        \centering
+        \resizebox{\textwidth}{!}{
+            \begin{tabular}{|l|l|l|p{8cm}|}
+                \hline
+                \textbf{字段名} & \textbf{类型} & \textbf{约束} & \textbf{描述} \\
+                \hline
+                \texttt{id} & INTEGER & 主键，自增 & 图片唯一标识符 \\
+                \texttt{user\_id} & INTEGER & 外键，关联\texttt{users}表 & 上传图片的用户ID \\
+                \texttt{file\_path} & TEXT & 非空 & 图片在服务器中的存储路径 \\
+                \texttt{upload\_time} & TIMESTAMP & 默认当前时间 & 图片上传的时间 \\
+                \hline
+            \end{tabular}
+        }
+        \caption{图片表结构}
+        \label{tab:images}
+    \end{table}
+
+    \item \textbf{识别结果表（\texttt{results}）} \\
+    用于存储姿势识别的结果数据，包括关键点信息和分类结果。
+    \begin{table}[h!]
+        \centering
+        \resizebox{\textwidth}{!}{
+        \begin{tabular}{|l|l|l|p{8cm}|}
+            \hline
+            \textbf{字段名} & \textbf{类型} & \textbf{约束} & \textbf{描述} \\
+            \hline
+            \texttt{id} & INTEGER & 主键，自增 & 识别结果唯一标识符 \\
+            \texttt{image\_id} & INTEGER & 外键，关联\texttt{images}表 & 对应图片的ID \\
+            \texttt{classification} & VARCHAR(20) & 非空 & 识别的分类结果，例如\texttt{'Good'} \\
+            \texttt{keypoints} & JSONB & 非空 & 包含关键点的JSON数据，存储所有关键点的坐标和可见性 \\
+            \texttt{processed\_time} & TIMESTAMP & 默认当前时间 & 识别完成的时间 \\
+            \hline
+        \end{tabular}
+        }
+        \caption{识别结果表结构}
+        \label{tab:results}
+    \end{table}
+\end{enumerate}
+
+\noindent
+通过上述数据表设计，用户的基本信息、图片上传记录及姿势识别结果可以被高效存储和查询，同时为系统的扩展性提供基础支持。
+
+
+\subsubsection{数据表示例}
+
+\textbf{识别结果表}的字段设计如下所示：
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|c|c|p{8cm}|}
+        \hline
+        \textbf{字段名} & \textbf{类型} & \textbf{描述} \\
+        \hline
+        \texttt{id} & INTEGER & 主键，自增，用于唯一标识一条识别记录。 \\
+        \texttt{image\_id} & ForeignKey & 外键，关联\texttt{images}表中的主键，用于标识对应的图片记录。 \\
+        \texttt{keypoints} & JSON & 关键点数据，存储人体姿势的关键点信息，包括坐标和可见性。 \\
+        \texttt{classification} & String & 分类结果，表示姿势识别的结果类别，例如\texttt{'Good'}、\texttt{'Blur'}等。 \\
+        \texttt{created\_at} & DateTime & 记录创建时间，表示识别完成的时间戳。 \\
+        \hline
+    \end{tabular}
+    }
+    \caption{识别结果表字段设计}
+    \label{table:result_table}
+\end{table}
+
+\noindent
+以下是\textbf{识别结果表}中数据的一个示例：
+
+\begin{lstlisting}[caption=识别结果表数据示例, label=listing:result_table_sample]
+{
+    "id": 123,
+    "image_id": 45,
+    "keypoints": [
+        {"id": 0, "x": 0.5, "y": 0.6, "z": -0.3, "visibility": 0.99},
+        {"id": 1, "x": 0.4, "y": 0.7, "z": -0.2, "visibility": 0.95},
+        ...
+    ],
+    "classification": "Good",
+    "created_at": "2024-11-23T15:45:00Z"
+}
+\end{lstlisting}
+
+\noindent
+通过该数据结构，系统能够快速查询、分析并呈现识别结果。
+
+
+\subsection{部署方案}
+
+\subsubsection{环境要求}
+
+\begin{enumerate}
+    \item \textbf{服务器：}建议使用Ubuntu 22.04操作系统。
+    \item \textbf{运行环境：}安装Python 3.10及以上版本，配置Django及相关依赖。
+    \item \textbf{数据库：}采用PostgreSQL 14。
+\end{enumerate}
+
+\subsubsection{部署步骤}
+
+\begin{enumerate}
+    \item 配置Django项目及应用。
+    \item 设置Nginx和Gunicorn作为反向代理及应用服务器。
+    \item 配置PostgreSQL数据库，并初始化数据表。
+    \item 部署姿势识别程序及相关依赖。
+\end{enumerate}

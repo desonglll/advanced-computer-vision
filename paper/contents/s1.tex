@@ -114,69 +114,260 @@
 
 \subsection{图片文件处理}
 
-使用OpenCV配合MediaPipePose，生成带有骨架图的儿童图片，统一命名img\_xxx.jpg，统一分辨率以及图片大小。
+为了生成带有骨架图的儿童图片，使用了OpenCV与MediaPipe Pose库的组合处理方法。以下是具体步骤：
+
+\begin{enumerate}
+    \item 图片读取与预处理：使用OpenCV读取输入的原始图片文件。通过函数 \texttt{cv2.imread()} 加载图片，并根据需要进行色彩空间转换（例如转换为RGB格式）。
+    \item 骨架点检测与绘制：利用MediaPipe Pose模型对每张图片进行骨架点检测。通过模型的预测结果提取关键点坐标，并使用OpenCV的绘图函数（如 \texttt{cv2.line()} 和 \texttt{cv2.circle()}）在原图上绘制骨架图。
+    \item 文件命名规则：所有处理后的图片统一命名为 \texttt{img\_xxx.jpg} 格式，其中 \texttt{xxx} 为三位数字（例如 \texttt{img\_001.jpg}, \texttt{img\_002.jpg}）。
+    \item 分辨率与尺寸统一：对生成的图片进行尺寸归一化处理，确保所有图片的分辨率一致（例如，设定为 640×480）。使用 OpenCV 的 \texttt{cv2.resize()} 函数进行图片大小调整。
+    \item 图片保存：将处理后的图片使用 \texttt{cv2.imwrite()} 保存到指定的目标文件夹中，确保文件格式为 JPEG。
+\end{enumerate}
+
+通过上述方法，可以高效生成标准化的儿童图片数据集，便于后续模型训练和评估。
 
 \subsection{骨骼数据提取（单摄像头）}
 
-使用MediaPipe进行人体33个关键点的提取，保存为json格式，内有image和features字段。
-image字段代表图片的路径，包含图片的名字。
-features字段包含33个关键点的keypoint信息。
+为了提取人体的33个关键点信息，本研究采用MediaPipe Pose模块对单摄像头采集的图像进行处理，并将关键点数据保存为JSON格式文件。具体步骤如下：
+
+\begin{enumerate}
+    \item 人体关键点检测：使用MediaPipe Pose对输入图像进行人体骨骼关键点检测。该模型可以预测33个关键点的二维坐标（\texttt{x, y}）及其置信度（\texttt{visibility}），这些点覆盖了人体主要的关节和骨骼部位。
+    \item 数据结构设计：提取的关键信息被组织为JSON格式，结构设计如下：
+    \begin{itemize}
+        \item \texttt{image} 字段：存储图片的相对路径，格式为字符串（例如 \texttt{"images/img\_001.jpg"}），包含图片文件名以便追溯来源。
+        \item \texttt{features} 字段：存储人体关键点的列表，每个关键点为一个JSON对象，包含以下子字段：
+        \begin{itemize}
+            \item \texttt{x}：关键点的水平坐标，值为归一化到[0, 1]范围的小数。
+            \item \texttt{y}：关键点的垂直坐标，值为归一化到[0, 1]范围的小数。
+            \item \texttt{visibility}：关键点的置信度，表示该点是否被可靠检测到，值范围为[0, 1]。
+        \end{itemize}
+    \end{itemize}
+    \item JSON文件保存：每张图片对应一个JSON文件，文件名与图片文件名一致，仅扩展名为 \texttt{.json}（例如 \texttt{img\_001.json}）。JSON文件被保存到指定的目录中。
+    \item 代码实现细节：在提取过程中，首先使用MediaPipe的Pose检测API获取原始关键点信息，随后将坐标和置信度按上述结构存入字典。最后，使用Python的 \texttt{json} 模块将字典写入文件。
+\end{enumerate}
+
+以下为一个示例JSON文件的内容结构：
+\begin{verbatim}
+{
+    "image": "images/img_001.jpg",
+    "features": [
+        {"x": 0.15, "y": 0.25, "visibility": 0.98},
+        {"x": 0.20, "y": 0.30, "visibility": 0.95},
+        ...
+        {"x": 0.75, "y": 0.85, "visibility": 0.90}
+    ]
+}
+\end{verbatim}
+
+通过该方法，可以系统地将人体关键点数据提取并格式化保存，为后续动作分析或机器学习任务提供高质量的数据支持。
 
 \subsection{数据格式（单摄像头）}
 
-建议提取数据放在数据标注操作之后，方便json数据的追加features属性。
+为了便于后续的数据处理和扩展功能，建议在完成数据标注操作后，进行人体骨骼关键点数据的提取和保存操作。提取的数据采用JSON格式进行组织，支持后续的追加和修改 \texttt{features} 属性。具体数据格式如下：
 
-1. 单个关键点的数据格式：
+\begin{enumerate}
+    \item 单个关键点的数据格式：每个关键点的数据包含以下属性：
+    \begin{itemize}
+        \item \texttt{keypoint\_id}：关键点的唯一编号，类型为整数，对应人体的特定位置（例如鼻子、肩膀等）。
+        \item \texttt{x}：关键点的水平坐标，值为归一化到[0, 1]范围的小数。
+        \item \texttt{y}：关键点的垂直坐标，值为归一化到[0, 1]范围的小数。
+        \item \texttt{z}：关键点的深度坐标，值为相机坐标系中的相对深度信息，单位为标准化相机深度。
+        \item \texttt{visibility}：关键点的置信度，表示检测结果的可靠性，值范围为[0, 1]。
+    \end{itemize}
 
-\begin{lstlisting}
-Keypoint: {
-    "keypoint_id": 0,
-    "x": 0.5661032795906067,
-    "y": 0.3272441029548645,
-    "z": -1.3933179378509521,
-    "visibility": 0.9999678134918213
-}
-\end{lstlisting}
+    单个关键点数据的JSON格式如下：
+    \begin{lstlisting}
+    Keypoint: {
+        "keypoint_id": 0,
+        "x": 0.5661032795906067,
+        "y": 0.3272441029548645,
+        "z": -1.3933179378509521,
+        "visibility": 0.9999678134918213
+    }
+    \end{lstlisting}
 
-2. 单个图片的数据格式（带有33个关键点）：
+    \item 单张图片的数据格式：每张图片对应一个JSON文件，文件中包含以下两个字段：
+    \begin{itemize}
+        \item \texttt{image}：图片的相对路径，格式为字符串（例如 \texttt{"images/train\_img.png"}）。
+        \item \texttt{features}：包含33个关键点的列表，每个关键点的数据格式与上述单个关键点一致。
+    \end{itemize}
 
-\begin{lstlisting}
-{
-    "image": "train_img.png",
-    "features": [Keypoint]
-}
-\end{lstlisting}
+    单张图片数据的JSON格式如下：
+    \begin{lstlisting}
+    {
+        "image": "images/train_img.png",
+        "features": [
+            {
+                "keypoint_id": 0,
+                "x": 0.5661032795906067,
+                "y": 0.3272441029548645,
+                "z": -1.3933179378509521,
+                "visibility": 0.9999678134918213
+            },
+            {
+                "keypoint_id": 1,
+                "x": 0.4721031188964844,
+                "y": 0.4152013659477234,
+                "z": -1.4203872680664063,
+                "visibility": 0.9998916387557983
+            },
+            ...
+            {
+                "keypoint_id": 32,
+                "x": 0.518302321434021,
+                "y": 0.65730202293396,
+                "z": -0.8702016472816467,
+                "visibility": 0.998772144317627
+            }
+        ]
+    }
+    \end{lstlisting}
+\end{enumerate}
+
+通过采用上述数据格式，可以清晰地描述每张图片中人体骨骼的关键点信息，同时保留关键信息的完整性，便于后续的数据分析和模型训练。
 
 \section{数据标注}
 
 \subsection{工具采用}
 
-使用doccano工具进行Classification类型标注。
-使用docker部署，暴露8000端口，方便多个人员进行数据标注。
+本项目采用 \textbf{doccano} 工具进行数据标注，选择 \textbf{Classification} 类型标注，用于对数据集中的图片或文本进行分类标注操作。doccano 是一个开源、用户友好的数据标注工具，支持多种标注类型，如文本分类、序列标注、实体关系标注等，非常适合本项目的数据标注需求。
+
+为了提高数据标注的效率并支持多人协作，工具通过 Docker 部署，具体配置如下：
+\begin{itemize}
+    \item 使用官方提供的 doccano Docker 镜像。
+    \item 配置服务运行时暴露 \textbf{8000端口}，允许团队成员通过浏览器访问进行标注。
+    \item 数据标注过程中，每位标注员可拥有独立账户，便于分配任务并管理标注进度。
+    \item 支持标注结果的导出为 JSON 或 CSV 格式，以便后续的数据处理和模型训练使用。
+\end{itemize}
+
+Docker 部署的具体命令如下：
+\begin{lstlisting}[language=bash]
+# 拉取官方 doccano 镜像
+docker pull doccano/doccano
+
+# 运行 doccano 容器并暴露 8000 端口
+docker run -d --name doccano -p 8000:8000 doccano/doccano
+
+# 进入容器并创建管理员账户
+docker exec -it doccano bash
+# 在容器内运行以下命令
+python manage.py createsuperuser
+\end{lstlisting}
+
+部署完成后，标注人员可通过 \texttt{http://localhost:8000} 或服务器对应的 IP 地址访问 doccano 界面，并登录完成数据标注任务。部署，暴露8000端口，方便多个人员进行数据标注。
 
 \subsection{标签等级}
 
-可以选用0-9十个分类或者a-z的字母分类作为label。
-每个图片可以有多个label。
+在数据标注过程中，标签（label）的设置具有灵活性，可根据具体任务需求选用以下两种分类方式之一：
+
+\begin{enumerate}
+    \item \textbf{数字分类：} 使用 \texttt{0-9} 共 \textbf{10个分类}，适用于需要简单分类的场景，例如表示类别等级、评分或状态类型。
+    \item \textbf{字母分类：} 使用 \texttt{a-z} 共 \textbf{26个分类}，适用于分类类别较多或需要更多灵活性时，例如表示不同的特征类别或分组。
+\end{enumerate}
+
+\noindent 每张图片可以分配 \textbf{一个或多个标签}（multi-label classification），以准确表达图片的多种特征属性。例如：
+\begin{itemize}
+    \item 数字分类场景下，单张图片可以标注为 \texttt{[0, 3, 7]}，表示其同时具有第 0、3、7 类特性。
+    \item 字母分类场景下，单张图片可以标注为 \texttt{[a, c, g]}，表示其对应的分类属性为 a、c、g。
+\end{itemize}
+
+\noindent 每个标签的分配应遵循以下原则：
+\begin{itemize}
+    \item 标签的数量和含义需要在标注任务开始前统一定义，并明确说明各标签的具体语义，以确保标注人员的理解一致性。
+    \item 多标签标注适用于具有复杂属性的样本，允许对图片的多方面特性进行全面描述。
+    \item 标注时，应使用 doccano 工具内的 \texttt{Multi-label Classification} 功能，支持在一张图片上同时分配多个标签。
+\end{itemize}
+
+\noindent 标注结果的格式如下：
+\begin{lstlisting}
+{
+    "image": "train_img_001.png",
+    "labels": ["a", "c", "g"]
+}
+{
+    "image": "train_img_002.png",
+    "labels": [0, 3, 7]
+}
+\end{lstlisting}
+
+上述格式中：
+\begin{itemize}
+    \item \texttt{image} 字段表示图片路径，包含文件名。
+    \item \texttt{labels} 字段表示图片的分类标签，可以是字母或数字。
+\end{itemize}
+
+此标签等级设计兼具简洁性和灵活性，适应不同复杂度的分类任务需求。
 
 \subsection{数据格式}
+在本项目中，数据格式为JSON格式，包含每个样本的基本信息。具体格式如下所示：
 
 \begin{lstlisting}
 {
-    "id": 2,
-    "filename": "img_57.jpg",
-    "label": "Good",
-    "Comments": []
+    "id": 2,                    % 样本的唯一标识符
+    "filename": "img_57.jpg",    % 图片文件名，包含路径
+    "label": "Good",             % 图片的分类标签，表示其所归属的类别
+    "Comments": []               % 图片的备注信息，可以为空数组或包含具体说明
 }
 \end{lstlisting}
+
+\noindent 该格式中的各字段说明如下：
+
+\begin{itemize}
+    \item \texttt{id}：该字段为每个图片的唯一标识符，用于区分不同的样本。通常为一个整数，保证每个图片有一个唯一的编号。
+    \item \texttt{filename}：该字段存储图片文件的名称，通常包括图片文件的相对路径或绝对路径，用于定位图片位置。以“.jpg”、“.png”等常见图像格式为后缀。
+    \item \texttt{label}：该字段表示图片的分类标签或标注信息，描述图片属于哪个类别。在多分类场景下，可以为具体的类别名称（如“Good”），也可以使用数字、字母等分类编码。
+    \item \texttt{Comments}：该字段用于存储与图片相关的备注信息，类型为数组。可以用于记录标注者的说明或图片的额外信息。如果没有备注信息，则为空数组（\texttt{[]})。
+\end{itemize}
+
+\noindent 该格式非常适合于分类任务的应用，可根据需要进一步扩展或修改其他字段，如加入标注时间、标注者信息等。通过此结构化的格式，能够方便地存储和管理大量图片数据，并支持后续的数据处理和分析。
 
 \section{数据合并}
 
 \subsection{合并工具选择}
 
-使用Python的json模块进行json与jsonl数据的合并处理。
+在本项目中，使用Python的\texttt{json}模块对\texttt{json}和\texttt{jsonl}格式的数据进行合并处理。具体方法如下所述：
+
+\begin{itemize}
+    \item \texttt{json}格式文件：每个文件包含一个JSON对象，通常用于存储单个样本的完整信息。
+    \item \texttt{jsonl}格式文件：每一行包含一个JSON对象，常用于存储多条样本信息，适合处理大量数据。
+\end{itemize}
+
+合并过程包括将多个\texttt{json}文件的内容合并为一个\texttt{jsonl}文件，或者将多个\texttt{jsonl}文件合并为一个大文件，方便后续的数据处理和分析。下面是一个合并操作的示例：
+
+\begin{lstlisting}[language=Python]
+import json
+
+# 合并多个JSONL文件为一个JSON文件
+def jsonl_to_json(jsonl_file_path, output_json_file_path):
+    """
+    将 JSONL 文件中的数据转换为标准的 JSON 格式文件。
+
+    :param jsonl_file_path: JSONL 文件路径
+    :param output_json_file_path: 输出的 JSON 文件路径
+    """
+    merged_data = []
+
+    # 打开 JSONL 文件并逐行处理
+    with open(jsonl_file_path, 'r') as jsonl_file:
+        for line in jsonl_file:
+            item = json.loads(line)  # 解析每一行的 JSON 对象
+            merged_data.append(item)
+
+    # 将合并后的数据写入输出 JSON 文件
+    with open(output_json_file_path, 'w') as json_file:
+        json.dump(merged_data, json_file, indent=4)
+
+    print(f"Converted JSONL data saved to {output_json_file_path}")
+\end{lstlisting}
+
+\noindent 该代码使用了\texttt{json}模块的\texttt{json.load()}和\texttt{json.dump()}函数来读取和写入JSON数据。对于JSONL格式的文件，逐行读取每个JSON对象，并使用\texttt{json.loads()}进行解析。在合并过程中，\texttt{json.dump()}用于将合并后的数据输出为标准的JSON或JSONL格式。
+
+通过这种方法，可以方便地处理大量数据，并且能够根据需要自由选择文件格式，确保数据处理的高效与灵活。
 
 \subsection{预期合并格式}
+
+在数据合并过程中，期望的格式为每个样本包含人体关键点信息与标注数据，最终合并后的数据结构示例如下所示：
+
 \begin{lstlisting}
 Keypoint: {
     "keypoint_id": 0,
@@ -188,11 +379,47 @@ Keypoint: {
 {
     "id": 2,
     "filename": "img_57.jpg",
-    "features": [Keypoint]
+    "features": [
+        {
+            "keypoint_id": 0,
+            "x": 0.5661032795906067,
+            "y": 0.3272441029548645,
+            "z": -1.3933179378509521,
+            "visibility": 0.9999678134918213
+        },
+        {
+            "keypoint_id": 1,
+            "x": 0.47492358136177063,
+            "y": 0.29118308448791504,
+            "z": -1.360788703918457,
+            "visibility": 0.9999857540130615
+        },
+        ...
+        {
+            "keypoint_id": 32,
+            "x": 0.2345515936613083,
+            "y": 0.5407830471992493,
+            "z": -1.2895463705062866,
+            "visibility": 0.9999411101341248
+        }
+    ],
     "label": "Good",
     "Comments": []
 }
 \end{lstlisting}
+
+\noindent 该数据结构包含以下字段：
+\begin{itemize}
+    \item \texttt{Keypoint}：每个关键点的位置信息，包括关键点的ID、三维坐标（\texttt{x}, \texttt{y}, \texttt{z}）以及可见性（\texttt{visibility}）。
+    \item \texttt{id}：图片的唯一标识符。
+    \item \texttt{filename}：图片文件名。
+    \item \texttt{features}：包含33个关键点的列表，记录了人体各部位关键点的三维坐标与可见性信息。
+    \item \texttt{label}：图片的标注标签（例如，"Good"）。
+    \item \texttt{Comments}：用户添加的评论或附加信息，默认为空列表。
+\end{itemize}
+
+\noindent 此格式通过\texttt{features}字段存储每张图片的关键点数据，并通过\texttt{label}字段进行分类标注，能够帮助我们在后续分析和模型训练中使用。这种结构便于后续处理与进一步的特征提取。
+
 
 \subsection{代码片段}
 
@@ -200,7 +427,22 @@ Keypoint: {
 
 \subsection{工具选择}
 
-选用Tensorflow进行训练。
+在本项目中，选择TensorFlow作为主要的深度学习框架进行模型训练。TensorFlow是一个开源的机器学习框架，广泛应用于深度学习、神经网络训练和推理，具有高度的灵活性和扩展性。其优点包括：
+
+\begin{itemize}
+    \item \textbf{广泛的社区支持}：TensorFlow拥有庞大的开发者社区和丰富的文档资源，使得开发者能够快速解决遇到的问题。
+    \item \textbf{高效的性能优化}：TensorFlow支持GPU和TPU加速训练，可以大幅提高训练速度，特别是在处理大量数据时。
+    \item \textbf{跨平台支持}：TensorFlow支持多种平台，包括Windows、Linux、macOS和移动设备，能够在各种硬件上运行。
+    \item \textbf{模型部署便捷}：TensorFlow的模型可以方便地部署到多种设备，包括服务器、移动设备以及嵌入式系统，支持TensorFlow Lite和TensorFlow.js等工具进行边缘计算和浏览器端推理。
+    \item \textbf{丰富的API支持}：TensorFlow提供了丰富的API接口，支持Python、C++、Java等多种编程语言，用户可以根据实际需求选择合适的API进行开发。
+\end{itemize}
+
+在使用TensorFlow进行模型训练时，主要采用TensorFlow Keras API进行神经网络的构建与训练，Keras提供了一个简洁的接口，能够帮助开发者快速构建、训练和评估深度学习模型。
+
+通过TensorFlow的自动求导机制和优化器支持，可以实现高效的反向传播和梯度下降，优化模型的参数，减少训练时间。此外，TensorFlow支持集成式训练流程，包括数据预处理、模型评估和部署，使得整个机器学习管道更加流畅。
+
+选择TensorFlow不仅能够满足高效训练的需求，还能利用其强大的模型扩展性，方便后期模型的优化与部署。
+
 
 \subsection{传入数据}
 
@@ -396,4 +638,103 @@ def process_and_save_angle(self, img, p1, p2, p3, save_interval, filepath="angle
 
 \section{实际运行}
 
-见AiI.py
+以下是使用Python进行姿势估计和模型预测的完整代码实现，采用了OpenCV、TensorFlow和MediaPipe框架进行实时视频处理与姿势分类。
+
+\begin{lstlisting}[language=Python]
+import numpy as np
+import time
+from tensorflow.keras.models import load_model
+import cv2
+from mediapipe_impl.pose_estimation import PoseEstimationModule as pm
+import mediapipe as mp
+
+# 初始化MediaPipe和姿势估计模块
+mp_draw = mp.solutions.drawing_utils
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose()
+detector = pm.PoseDetector()
+
+# 加载已保存的模型
+model = load_model('./models/pose_estimation.keras')
+
+# 验证模型是否加载成功
+model.summary()
+
+# 定义标签
+ALL_LABELS = ['Blur', 'Normal', 'Wrong']
+
+# 打开视频摄像头
+cap = cv2.VideoCapture(1)
+
+# 初始化时间变量以计算帧率
+p_time = 0
+while True:
+    # 读取每一帧图像
+    success, img = cap.read()
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    results = pose.process(img_rgb)
+
+    # 检测到姿势标记时进行处理
+    if results.pose_landmarks:
+        # 绘制姿势的骨架图
+        mp_draw.draw_landmarks(img, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+        data = []
+        # 提取每个关键点的位置和可见性
+        for id, lm in enumerate(results.pose_landmarks.landmark):
+            h, w, c = img.shape
+            data.extend([lm.x, lm.y, lm.z, lm.visibility])
+            cx, cy = int(lm.x * w), int(lm.y * h)
+            # 在图像上绘制每个关键点
+            cv2.circle(img, (cx, cy), 10, (255, 0, 0), cv2.FILLED)
+        # 将关键点数据转化为适合模型输入的格式
+        X = np.array(data).reshape((1, 33, 4))
+        print(X.shape)
+
+        # 对提取的特征数据进行预测
+        predictions = model.predict(X)
+
+        # 获取预测类别的索引
+        predicted_class = np.argmax(predictions, axis=1)[0]
+        print(f"Predicted Class: {predicted_class}")
+        print(ALL_LABELS[predicted_class])
+
+    # 计算每秒帧数 (FPS)
+    c_time = time.time()
+    fps = 1 / (c_time - p_time)
+    p_time = c_time
+
+    # 在图像上显示帧率
+    cv2.putText(img, 'FPS: {:.2f}'.format(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3)
+
+    # 显示处理后的图像
+    cv2.imshow('img', img)
+    cv2.waitKey(1)
+\end{lstlisting}
+
+\subsection{代码说明}
+
+1. 导入必要的库：首先，代码导入了$numpy$用于数据处理，$time$用于计算帧率，$tensorflow.keras.models$用于加载已训练的模型，$cv2$用于图像处理，$mediapipe$用于姿势估计。
+
+2. 模型加载与验证：使用$load\_model$方法加载预训练的姿势估计模型，并通过$model.summary()$查看模型架构。
+
+3. 视频捕获与图像处理：
+   - 使用$cv2.VideoCapture(1)$启动摄像头并捕获每一帧。
+   - 将每一帧从BGR格式转换为RGB格式，以便传递给MediaPipe进行处理。
+   - 使用$pose.process$处理每帧图像，提取人体姿势标记（关键点）。
+
+4. 姿势估计与关键点提取：
+   - 如果图像中检测到姿势标记，通过$mp\_draw.draw\_landmarks$绘制姿势的骨架图。
+   - 从$results.pose\_landmarks.landmark$中提取每个关键点的坐标（x, y, z）及可见性（visibility）。
+   - 将所有关键点的坐标和可见性信息存储在$data$列表中，并转换为适合模型输入的格式（形状为$(1, 33, 4)$）。
+
+5. 模型预测：
+   - 使用$model.predict$进行预测，获取类别的概率分布。
+   - 通过$np.argmax$找到概率最大的类别索引，并输出预测结果及相应的标签。
+
+6. 帧率计算与显示：
+   - 使用$time.time()$计算每帧处理所需的时间，并计算每秒帧数（FPS）。
+   - 使用$cv2.putText$在图像上显示当前FPS。
+
+7. 显示图像：使用$cv2.imshow$实时显示带有骨架图和FPS信息的处理后图像。
+
+通过此实现，系统能够实时捕捉人体姿势并进行分类，适用于视频监控、健身训练等场景的姿势分析和反馈。

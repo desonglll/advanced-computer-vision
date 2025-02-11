@@ -63,7 +63,6 @@ class PoseDetector:
                 }]
         """
         self.lm_list = []
-        self.lm_map = map("a", 1)
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.pose.process(img_rgb)
         if self.results.pose_landmarks:
@@ -217,7 +216,7 @@ class PoseDetector:
 
 def main():
     # cap = cv2.VideoCapture("../../datasets/body_videos/body_1.jpg")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
     detector = PoseDetector()
 
     while True:
@@ -228,14 +227,14 @@ def main():
         # img = detector.find_pose(img)
         # cv2.imshow('img', img)
 
-        # img, lmks = detector.find_position(img, convert_to_x_y_pixel=True, draw=True)
-        # cv2.imshow('img', img)
-        # print(lmks)
-
-        angle = detector.find_angle(img, 16, 14, 12)
+        img, lmks = detector.find_position(img, convert_to_x_y_pixel=True, draw=True)
         cv2.imshow('img', img)
-        print(angle)
+        print(lmks)
 
+        # angle = detector.find_angle(img, 16, 14, 12)
+        # cv2.imshow('img', img)
+        # print(angle)
+        #
         # angle = detector.find_angle_with_horizontal(img, 5, 10)
         # cv2.imshow('img', img)
         # print(angle)

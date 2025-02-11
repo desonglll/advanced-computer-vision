@@ -40,7 +40,7 @@ class FaceMeshDetector:
 
 
 def main():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
     pTime = 0
     cTime = 0
     detector = FaceMeshDetector(maxFaces=1)
@@ -53,7 +53,7 @@ def main():
         cTime = time.time()
         fps = 1 / (cTime - pTime)
         pTime = cTime
-        cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 0.5, (255, 0, 255), 3)
+        cv2.putText(img, str(int(0)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 0.5, (255, 0, 255), 3)
         cv2.imshow('img', img)
         cv2.waitKey(1)
     pass
